@@ -1,6 +1,15 @@
 import { useState } from "react";
-import { Box, Container, styled, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Container,
+  styled,
+  TextField,
+  Typography,
+  Alert,
+} from "@mui/material";
 import UIButton from "./Button";
+import { useDispatch } from "react-redux";
+import { createBanner, updateBanner } from "../../store/slices/bannersSlice";
 
 const Form = ({
   initialData = {
@@ -9,9 +18,10 @@ const Form = ({
     endDate: "",
   },
   onCancel,
-  onSubmit,
 }) => {
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState(initialData);
+  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,9 +31,26 @@ const Form = ({
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+
+    if (!formData.title.trim()) {
+      setError("Название обязательно!");
+      return;
+    }
+
+    try {
+      if (initialData.id) {
+        await dispatch(updateBanner({ id: initialData.id, data: formData }));
+      } else {
+        await dispatch(createBanner(formData));
+        setFormData({ title: "", startDate: "", endDate: "" });
+      }
+
+      onCancel();
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
@@ -40,6 +67,8 @@ const Form = ({
       <Typography paddingBottom={"30px"} variant="h6">
         {initialData.id ? "Редактировать" : "Создать"}
       </Typography>
+
+      {error && <Alert severity="error">{error}</Alert>}
 
       <Box paddingBottom={"20px"}>
         <Typography paddingBottom={"14px"}>Название</Typography>

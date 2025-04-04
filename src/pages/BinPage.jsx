@@ -1,16 +1,37 @@
-import { Box, Container, InputBase, styled, Typography } from "@mui/material";
+import { Box, Container, Typography } from "@mui/material";
+import { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
 import UIButton from "../components/UI/Button";
 import UITable from "../components/UI/Table";
 import searchImg from "../assets/search.png";
 import Input from "../components/UI/Input";
-import { useRef } from "react";
+
+import { fetchBids } from "../store/slices/bidsSlice";
 
 const BinPage = () => {
+  const dispatch = useDispatch();
   const inputRef = useRef();
+  const [searchValue, setSearchValue] = useState("");
+
+  const bids = useSelector((state) => state.bids.items);
+
+  useEffect(() => {
+    dispatch(fetchBids());
+  }, [dispatch]);
 
   const handleSearchClick = () => {
     inputRef.current.focus();
   };
+
+  // Фильтрация по имени или номеру
+  const filteredBids = bids.filter((bid) => {
+    const value = searchValue.toLowerCase();
+    return (
+      bid.name.toLowerCase().includes(value) ||
+      bid.number.toLowerCase().includes(value)
+    );
+  });
 
   return (
     <Container maxWidth>
@@ -26,7 +47,9 @@ const BinPage = () => {
         <Typography variant="h5">Заявки</Typography>
         <Box sx={{ width: "668px", display: "flex", alignItems: "center" }}>
           <Input
-            inputRef={inputRef} // Передаем ref в ваш Input компонент
+            inputRef={inputRef}
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
             placeholder="Введите имя, фамилию или номер телефона"
             sx={{ width: "100%" }}
           />
@@ -45,7 +68,7 @@ const BinPage = () => {
         </Box>
       </Box>
       <Box sx={{ mt: 3 }}>
-        <UITable variant="bids" />
+        <UITable variant="bids" rowForBids={filteredBids} />
       </Box>
     </Container>
   );

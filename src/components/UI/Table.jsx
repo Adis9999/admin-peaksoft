@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 import {
   Checkbox,
   styled,
@@ -13,10 +14,11 @@ import {
   Modal,
   Box,
   Container,
-  TextField,
 } from "@mui/material";
 import UIButton from "./Button";
 import Form from "./Form";
+import { deleteBanner } from "../../store/slices/bannersSlice";
+import { deleteBid } from "../../store/slices/bidsSlice";
 
 const StyledEditAndDelete = styled(Typography)({
   cursor: "pointer",
@@ -25,65 +27,21 @@ const StyledEditAndDelete = styled(Typography)({
   },
 });
 
-const BoxFor2Inputs = styled(Box)({
-  display: "flex",
-  justifyContent: "space-between",
-  paddingBottom: "30px",
-});
-
 const BoxForButtons = styled(Box)({
   display: "flex",
   alignItems: "center",
   justifyContent: "end",
 });
 
-// Ваши оригинальные данные
-const courseRows = [
-  {
-    id: 1,
-    name: "Шарангат",
-    surname: "Шарангат",
-    phone: "+996 707 123 456",
-    birthDate: "12.12.1990",
-    email: "shangshan@gmail.com",
-    position: "Front-end",
-  },
-  {
-    id: 2,
-    name: "Шарангат",
-    surname: "Шарангат",
-    phone: "+996 707 123 456",
-    birthDate: "12.12.1990",
-    email: "shangshan@gmail.com",
-    position: "Back-end",
-  },
-];
-
-const rowForBids = [
-  {
-    id: 1,
-    name: "Гльчапчап",
-    number: "+996 707 123 456",
-  },
-  {
-    id: 2,
-    name: "Астанбек",
-    number: "+996 777 999 666",
-  },
-];
-
-const rows = [
-  {
-    id: 1,
-    title: "FrontEnd and BackEnd",
-    startDate: "20.11.2023",
-    endDate: "20.12.2024",
-  },
-];
-const UITable = ({ variant }) => {
+const UITable = ({ variant, rows, rowForBids }) => {
   const [course, setCourse] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [currentRow, setCurrentRow] = useState(null);
+  const [isChecked, setIsChecked] = useState(false);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteItem, setDeleteItem] = useState(null);
+
+  const dispatch = useDispatch();
 
   const handleEdit = (row) => {
     setCurrentRow(row);
@@ -91,192 +49,161 @@ const UITable = ({ variant }) => {
   };
 
   const handleDelete = (row) => {
-    console.log("Удалить:", row);
+    if (!isChecked) {
+      alert("Пожалуйста, выберите элемент для удаления");
+      return;
+    }
+    setDeleteItem(row);
+    setDeleteModalOpen(true);
   };
 
-  const handleSubmit = (formData) => {
-    console.log("Сохранить:", formData);
-    setModalOpen(false);
+  const confirmDelete = async () => {
+    try {
+      if (variant === "banner") {
+        await dispatch(deleteBanner(deleteItem.id));
+      } else if (variant === "bids") {
+        await dispatch(deleteBid(deleteItem.id));
+      }
+      setDeleteModalOpen(false);
+    } catch (err) {
+      console.error("Ошибка при удалении:", err);
+    }
   };
 
-  const showcourse = () => {
-    setCourse(true);
+  const handleCheckboxChange = (event) => {
+    setIsChecked(event.target.checked);
   };
 
   return (
     <>
       <TableContainer component={Paper}>
-        {course ? (
-          <Table sx={{ minWidth: 650 }}>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ width: "20px" }}></TableCell>
-                <TableCell sx={{ width: "20px" }} align="center">
-                  №
-                </TableCell>
-                <TableCell sx={{ minWidth: "120px" }} align="left">
-                  Имя
-                </TableCell>
-                <TableCell sx={{ minWidth: "120px" }} align="left">
-                  Фамилия
-                </TableCell>
-                <TableCell sx={{ minWidth: "150px" }} align="left">
-                  Телефон
-                </TableCell>
-                <TableCell sx={{ minWidth: "120px" }} align="left">
-                  Дата рождения
-                </TableCell>
-                <TableCell sx={{ minWidth: "180px" }} align="left">
-                  Email
-                </TableCell>
-                <TableCell sx={{ minWidth: "100px" }} align="left">
-                  Позиция
-                </TableCell>
-                <TableCell sx={{ width: "120px" }} align="center">
-                  Действия
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {courseRows.map((row) => (
-                <TableRow key={row.id} hover>
+        <Table sx={{ minWidth: 650 }}>
+          {variant === "banner" && (
+            <>
+              <TableHead>
+                <TableRow>
                   <TableCell>
-                    <Checkbox />
+                    <Checkbox
+                      checked={isChecked}
+                      onChange={handleCheckboxChange}
+                    />
                   </TableCell>
-                  <TableCell align="center">{row.id}</TableCell>
-                  <TableCell align="left">{row.name}</TableCell>
-                  <TableCell align="left">{row.surname}</TableCell>
-                  <TableCell align="left">{row.phone}</TableCell>
-                  <TableCell align="left">{row.birthDate}</TableCell>
-                  <TableCell align="left">{row.email}</TableCell>
-                  <TableCell align="left">{row.position}</TableCell>
-                  <TableCell
-                    align="center"
-                    sx={{ display: "flex", gap: "8px" }}
-                  >
-                    <StyledEditAndDelete onClick={() => handleEdit(row)}>
-                      ✎
-                    </StyledEditAndDelete>
-                    <StyledEditAndDelete onClick={() => handleDelete(row)}>
-                      🗑
-                    </StyledEditAndDelete>
-                  </TableCell>
+                  <TableCell align="center">№</TableCell>
+                  <TableCell align="left">Название</TableCell>
+                  <TableCell align="left">Дата создания</TableCell>
+                  <TableCell align="left">Дата окончания</TableCell>
+                  <TableCell align="center">Действия</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : (
-          <>
-            {variant === "banner" && (
-              <Table sx={{ minWidth: 650 }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ width: "20px" }}></TableCell>
-                    <TableCell sx={{ width: "20px" }} align="center">
-                      №
+              </TableHead>
+              <TableBody>
+                {rows.map((row) => (
+                  <TableRow key={row.id} hover>
+                    <TableCell>
+                      <Checkbox
+                        checked={isChecked}
+                        onChange={handleCheckboxChange}
+                      />
                     </TableCell>
-                    <TableCell sx={{ width: "700px" }} align="left">
-                      Название
-                    </TableCell>
-                    <TableCell sx={{ width: "110px" }} align="left">
-                      Дата создания
-                    </TableCell>
-                    <TableCell sx={{ width: "110px" }} align="left">
-                      Дата окончания
-                    </TableCell>
-                    <TableCell sx={{ width: "70px" }} align="right">
-                      Действия
+                    <TableCell align="center">{row.id}</TableCell>
+                    <TableCell align="left">{row.title}</TableCell>
+                    <TableCell align="left">{row.startDate}</TableCell>
+                    <TableCell align="left">{row.endDate}</TableCell>
+                    <TableCell align="center">
+                      <StyledEditAndDelete onClick={() => handleEdit(row)}>
+                        ✎
+                      </StyledEditAndDelete>
+                      <StyledEditAndDelete onClick={() => handleDelete(row)}>
+                        🗑
+                      </StyledEditAndDelete>
                     </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.map((row) => (
-                    <TableRow key={row.id} hover>
-                      <TableCell>
-                        <Checkbox />
-                      </TableCell>
-                      <TableCell align="center">{row.id}</TableCell>
-                      <TableCell align="left" onClick={showcourse}>
-                        {row.title}
-                      </TableCell>
-                      <TableCell align="left">{row.startDate}</TableCell>
-                      <TableCell align="left">{row.endDate}</TableCell>
-                      <TableCell
-                        align="center"
-                        sx={{ display: "flex", gap: "8px" }}
-                      >
-                        <StyledEditAndDelete onClick={() => handleEdit(row)}>
-                          ✎
-                        </StyledEditAndDelete>
-                        <StyledEditAndDelete onClick={() => handleDelete(row)}>
-                          🗑
-                        </StyledEditAndDelete>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-            {variant === "bids" && (
-              <Table sx={{ minWidth: 650 }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ width: "20px" }}></TableCell>
-                    <TableCell sx={{ width: "20px" }} align="center">
-                      №
+                ))}
+              </TableBody>
+            </>
+          )}
+          {variant === "bids" && (
+            <>
+              <TableHead>
+                <TableRow>
+                  <TableCell>
+                    <Checkbox
+                      checked={isChecked}
+                      onChange={handleCheckboxChange}
+                    />
+                  </TableCell>
+                  <TableCell align="center">№</TableCell>
+                  <TableCell align="left">Имя</TableCell>
+                  <TableCell align="center">Номер телефона</TableCell>
+                  <TableCell align="center">Действия</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rowForBids.map((row) => (
+                  <TableRow key={row.id} hover>
+                    <TableCell>
+                      <Checkbox
+                        checked={isChecked}
+                        onChange={handleCheckboxChange}
+                      />
                     </TableCell>
-                    <TableCell sx={{ width: "100px" }} align="left">
-                      Имя
-                    </TableCell>
-                    <TableCell sx={{ width: "950px" }} align="center">
-                      Номер телефона
-                    </TableCell>
-                    <TableCell sx={{ width: "70px" }} align="right">
-                      Действия
+                    <TableCell align="center">{row.id}</TableCell>
+                    <TableCell align="left">{row.name}</TableCell>
+                    <TableCell align="center">{row.number}</TableCell>
+                    <TableCell align="center">
+                      <StyledEditAndDelete onClick={() => handleDelete(row)}>
+                        🗑
+                      </StyledEditAndDelete>
                     </TableCell>
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rowForBids.map((row) => (
-                    <TableRow key={row.id} hover>
-                      <TableCell>
-                        <Checkbox />
-                      </TableCell>
-                      <TableCell align="center">{row.id}</TableCell>
-                      <TableCell align="left">{row.name}</TableCell>
-                      <TableCell align="center">{row.number}</TableCell>
-                      <TableCell
-                        align="center"
-                        sx={{ display: "flex", gap: "8px" }}
-                      >
-                        <StyledEditAndDelete onClick={() => handleEdit(row)}>
-                          ✎
-                        </StyledEditAndDelete>
-                        <StyledEditAndDelete onClick={() => handleDelete(row)}>
-                          🗑
-                        </StyledEditAndDelete>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </>
-        )}
+                ))}
+              </TableBody>
+            </>
+          )}
+        </Table>
       </TableContainer>
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
-        
-          <Form
-            initialData={
-              currentRow || { title: "", startDate: "", endDate: "" }
-            }
-            onCancel={() => setModalOpen(false)}
-            onSubmit={handleSubmit}
-          />
+        <Form
+          initialData={currentRow || { title: "", startDate: "", endDate: "" }}
+          onCancel={() => setModalOpen(false)}
+          onSubmit={(formData) => console.log("Сохранить:", formData)}
+        />
+      </Modal>
+
+      <Modal open={isDeleteModalOpen} onClose={() => setDeleteModalOpen(false)}>
+        <Container
+          sx={{
+            backgroundColor: "white",
+            padding: "20px",
+            borderRadius: "8px",
+          }}
+        >
+          <Typography variant="h3">Удалить</Typography>
+          <Typography variant="h5">Вы уверены?</Typography>
+          <StyledBoxForDelete>
+            <UIButton
+              type="button"
+              color="secondary"
+              onClick={() => setDeleteModalOpen(false)}
+            >
+              ОТМЕНИТЬ
+            </UIButton>
+            <UIButton
+              type="submit"
+              variant="contained"
+              onClick={() => confirmDelete()}
+            >
+              УДАЛИТЬ
+            </UIButton>
+          </StyledBoxForDelete>
+        </Container>
       </Modal>
     </>
   );
 };
 
 export default UITable;
+
+const StyledBoxForDelete = styled(Box)({
+  display: "flex",
+});

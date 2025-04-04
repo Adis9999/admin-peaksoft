@@ -1,12 +1,21 @@
 import { Box, Container, Typography } from "@mui/material";
 import UIButton from "../components/UI/Button";
 import UITable from "../components/UI/Table";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Modal from "../components/UI/Modal";
 import Form from "../components/UI/Form";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchBanners } from "../store/slices/bannersSlice";
 
 const BannerPage = () => {
   const [modal, setModal] = useState(false);
+  const dispatch = useDispatch();
+
+  const banners = useSelector((state) => state.banners.items);
+
+  useEffect(() => {
+    dispatch(fetchBanners());
+  }, [dispatch]);
 
   const openModal = () => {
     setModal(true);
@@ -17,7 +26,7 @@ const BannerPage = () => {
   };
 
   return (
-    <Container maxWidth>
+    <Container maxWidth="md">
       {modal && (
         <Modal onClose={onClose}>
           <Form />
@@ -39,7 +48,7 @@ const BannerPage = () => {
         </Box>
       </Box>
       <Box sx={{ position: "relative", zIndex: 1100 }}>
-        <UITable variant="banner" />
+        <UITable variant="banner" rows={banners} />
       </Box>
     </Container>
   );
