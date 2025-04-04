@@ -15,7 +15,7 @@ const AdminLayout = () => {
           Администратор
         </p>
       </StyledHeader>
-      <div>
+      <div style={{ background: "rgb(245, 245, 245)" }}>
         <Outlet />
       </div>
     </>
