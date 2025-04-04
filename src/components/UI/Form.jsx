@@ -4,7 +4,7 @@ import UIButton from "./Button";
 
 const Form = () => {
   return (
-    <Container sx={{ width: "400px", height: "337px", padding: "30px" }}>
+    <Container sx={{ width: "400px", height: "350px", padding: "30px" }}>
       <Typography paddingBottom={"30px "} variant="h6">
         Открыть регистрацию
       </Typography>
