@@ -4,7 +4,7 @@ const UIButton = ({ children, ...rest }) => {
   return <StyledButton {...rest}>{children}</StyledButton>;
 };
 
-export default UIButton;
+export default UIButton; 
 
 const StyledButton = styled(Button)({
   borderRadius: "10px",
