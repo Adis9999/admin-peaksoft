@@ -29,20 +29,34 @@ const bannersSlice = createSlice({
   initialState: {
     items: [],
     loading: false,
+    error: null,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
+      // fetch
+      .addCase(fetchBanners.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(fetchBanners.fulfilled, (state, action) => {
         state.items = action.payload;
+        state.loading = false;
       })
+      .addCase(fetchBanners.rejected, (state) => {
+        state.loading = false;
+        state.error = "Ошибка загрузки баннеров";
+      })
+
       .addCase(createBanner.fulfilled, (state, action) => {
         state.items.push(action.payload);
       })
+
       .addCase(updateBanner.fulfilled, (state, action) => {
         const idx = state.items.findIndex((i) => i.id === action.payload.id);
         if (idx !== -1) state.items[idx] = action.payload;
       })
+
       .addCase(deleteBanner.fulfilled, (state, action) => {
         state.items = state.items.filter((i) => i.id !== action.payload);
       });

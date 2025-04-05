@@ -47,7 +47,7 @@ const Form = ({
         setFormData({ title: "", startDate: "", endDate: "" });
       }
 
-      onCancel();
+      if (onCancel) onCancel(); 
     } catch (err) {
       console.log(err);
     }
@@ -110,7 +110,7 @@ const Form = ({
         </Box>
       </BoxFor2Inputs>
 
-      <Box>
+      <Box display="flex" justifyContent="space-between">
         <UIButton type="button" color="secondary" onClick={onCancel}>
           Отмена
         </UIButton>

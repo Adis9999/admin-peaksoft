@@ -15,12 +15,23 @@ const bidsSlice = createSlice({
   name: "bids",
   initialState: {
     items: [],
+    loading: false,
+    error: null,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
+      .addCase(fetchBids.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(fetchBids.fulfilled, (state, action) => {
         state.items = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchBids.rejected, (state) => {
+        state.loading = false;
+        state.error = "Ошибка загрузки заявок";
       })
       .addCase(deleteBid.fulfilled, (state, action) => {
         state.items = state.items.filter((i) => i.id !== action.payload);

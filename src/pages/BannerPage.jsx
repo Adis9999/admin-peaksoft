@@ -11,27 +11,23 @@ const BannerPage = () => {
   const [modal, setModal] = useState(false);
   const dispatch = useDispatch();
 
-  const banners = useSelector((state) => state.banners.items);
+  const { items: banners, loading } = useSelector((state) => state.banners);
 
   useEffect(() => {
     dispatch(fetchBanners());
   }, [dispatch]);
 
-  const openModal = () => {
-    setModal(true);
-  };
-
-  const onClose = () => {
-    setModal(false);
-  };
+  const openModal = () => setModal(true);
+  const onClose = () => setModal(false);
 
   return (
     <Container maxWidth="md">
       {modal && (
         <Modal onClose={onClose}>
-          <Form />
+          <Form onCancel={onClose} />
         </Modal>
       )}
+
       <Box
         sx={{
           display: "flex",
@@ -41,14 +37,21 @@ const BannerPage = () => {
         }}
       >
         <Typography variant="h5">Баннер</Typography>
-        <Box>
+        <Box sx={{ width: "170px" }}>
           <UIButton variant="contained" onClick={openModal}>
             СОЗДАТЬ БАННЕР
           </UIButton>
         </Box>
       </Box>
+
       <Box sx={{ position: "relative", zIndex: 1100 }}>
-        <UITable variant="banner" rows={banners} />
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", my: 4 }}>
+            <span className="loader" />
+          </Box>
+        ) : (
+          <UITable variant="banner" rows={banners} />
+        )}
       </Box>
     </Container>
   );

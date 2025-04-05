@@ -22,6 +22,7 @@ import { deleteBid } from "../../store/slices/bidsSlice";
 
 const StyledEditAndDelete = styled(Typography)({
   cursor: "pointer",
+  margin: "0 6px",
   "&:hover": {
     color: "#1976d2",
   },
@@ -34,10 +35,9 @@ const BoxForButtons = styled(Box)({
 });
 
 const UITable = ({ variant, rows, rowForBids }) => {
-  const [course, setCourse] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [currentRow, setCurrentRow] = useState(null);
-  const [isChecked, setIsChecked] = useState(false);
+  const [checkedIds, setCheckedIds] = useState({});
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteItem, setDeleteItem] = useState(null);
 
@@ -49,10 +49,7 @@ const UITable = ({ variant, rows, rowForBids }) => {
   };
 
   const handleDelete = (row) => {
-    if (!isChecked) {
-      alert("Пожалуйста, выберите элемент для удаления");
-      return;
-    }
+    if (!checkedIds[row.id]) return;
     setDeleteItem(row);
     setDeleteModalOpen(true);
   };
@@ -64,109 +61,92 @@ const UITable = ({ variant, rows, rowForBids }) => {
       } else if (variant === "bids") {
         await dispatch(deleteBid(deleteItem.id));
       }
+      setCheckedIds((prev) => {
+        const updated = { ...prev };
+        delete updated[deleteItem.id];
+        return updated;
+      });
       setDeleteModalOpen(false);
     } catch (err) {
       console.error("Ошибка при удалении:", err);
     }
   };
 
-  const handleCheckboxChange = (event) => {
-    setIsChecked(event.target.checked);
+  const handleCheckboxChange = (id) => {
+    setCheckedIds((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
   };
+
+  const data = variant === "banner" ? rows : rowForBids;
 
   return (
     <>
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }}>
-          {variant === "banner" && (
-            <>
-              <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <Checkbox
-                      checked={isChecked}
-                      onChange={handleCheckboxChange}
-                    />
-                  </TableCell>
-                  <TableCell align="center">№</TableCell>
+          <TableHead>
+            <TableRow>
+              <TableCell></TableCell>
+              <TableCell align="center">№</TableCell>
+              {variant === "banner" ? (
+                <>
                   <TableCell align="left">Название</TableCell>
                   <TableCell align="left">Дата создания</TableCell>
                   <TableCell align="left">Дата окончания</TableCell>
-                  <TableCell align="center">Действия</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rows.map((row) => (
-                  <TableRow key={row.id} hover>
-                    <TableCell>
-                      <Checkbox
-                        checked={isChecked}
-                        onChange={handleCheckboxChange}
-                      />
-                    </TableCell>
-                    <TableCell align="center">{row.id}</TableCell>
+                </>
+              ) : (
+                <>
+                  <TableCell align="left">Имя</TableCell>
+                  <TableCell align="center">Номер телефона</TableCell>
+                </>
+              )}
+              <TableCell align="center">Действия</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.map((row) => (
+              <TableRow key={row.id} hover>
+                <TableCell>
+                  <Checkbox
+                    checked={!!checkedIds[row.id]}
+                    onChange={() => handleCheckboxChange(row.id)}
+                  />
+                </TableCell>
+                <TableCell align="center">{row.id}</TableCell>
+                {variant === "banner" ? (
+                  <>
                     <TableCell align="left">{row.title}</TableCell>
                     <TableCell align="left">{row.startDate}</TableCell>
                     <TableCell align="left">{row.endDate}</TableCell>
-                    <TableCell align="center">
-                      <StyledEditAndDelete onClick={() => handleEdit(row)}>
-                        ✎
-                      </StyledEditAndDelete>
-                      <StyledEditAndDelete onClick={() => handleDelete(row)}>
-                        🗑
-                      </StyledEditAndDelete>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </>
-          )}
-          {variant === "bids" && (
-            <>
-              <TableHead>
-                <TableRow>
-                  <TableCell>
-                    <Checkbox
-                      checked={isChecked}
-                      onChange={handleCheckboxChange}
-                    />
-                  </TableCell>
-                  <TableCell align="center">№</TableCell>
-                  <TableCell align="left">Имя</TableCell>
-                  <TableCell align="center">Номер телефона</TableCell>
-                  <TableCell align="center">Действия</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {rowForBids.map((row) => (
-                  <TableRow key={row.id} hover>
-                    <TableCell>
-                      <Checkbox
-                        checked={isChecked}
-                        onChange={handleCheckboxChange}
-                      />
-                    </TableCell>
-                    <TableCell align="center">{row.id}</TableCell>
+                  </>
+                ) : (
+                  <>
                     <TableCell align="left">{row.name}</TableCell>
                     <TableCell align="center">{row.number}</TableCell>
-                    <TableCell align="center">
-                      <StyledEditAndDelete onClick={() => handleDelete(row)}>
-                        🗑
-                      </StyledEditAndDelete>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </>
-          )}
+                  </>
+                )}
+                <TableCell align="center">
+                  {variant === "banner" && (
+                    <StyledEditAndDelete onClick={() => handleEdit(row)}>
+                      ✎
+                    </StyledEditAndDelete>
+                  )}
+                  <StyledEditAndDelete onClick={() => handleDelete(row)}>
+                    🗑
+                  </StyledEditAndDelete>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
         </Table>
       </TableContainer>
 
+      {/* Modal for Edit */}
       <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
         <Form
           initialData={currentRow || { title: "", startDate: "", endDate: "" }}
           onCancel={() => setModalOpen(false)}
-          onSubmit={(formData) => console.log("Сохранить:", formData)}
         />
       </Modal>
 
@@ -176,10 +156,12 @@ const UITable = ({ variant, rows, rowForBids }) => {
             backgroundColor: "white",
             padding: "20px",
             borderRadius: "8px",
+            maxWidth: "400px",
           }}
         >
-          <Typography variant="h3">Удалить</Typography>
-          <Typography variant="h5">Вы уверены?</Typography>
+          <Typography variant="h5" mb={2}>
+            Вы уверены, что хотите удалить?
+          </Typography>
           <StyledBoxForDelete>
             <UIButton
               type="button"
@@ -188,11 +170,7 @@ const UITable = ({ variant, rows, rowForBids }) => {
             >
               ОТМЕНИТЬ
             </UIButton>
-            <UIButton
-              type="submit"
-              variant="contained"
-              onClick={() => confirmDelete()}
-            >
+            <UIButton type="submit" variant="contained" onClick={confirmDelete}>
               УДАЛИТЬ
             </UIButton>
           </StyledBoxForDelete>
@@ -206,4 +184,7 @@ export default UITable;
 
 const StyledBoxForDelete = styled(Box)({
   display: "flex",
+  justifyContent: "space-between",
+  gap: "16px",
+  marginTop: "20px",
 });

@@ -14,7 +14,7 @@ const BinPage = () => {
   const inputRef = useRef();
   const [searchValue, setSearchValue] = useState("");
 
-  const bids = useSelector((state) => state.bids.items);
+  const { items: bids, loading } = useSelector((state) => state.bids);
 
   useEffect(() => {
     dispatch(fetchBids());
@@ -24,7 +24,6 @@ const BinPage = () => {
     inputRef.current.focus();
   };
 
-  // Фильтрация по имени или номеру
   const filteredBids = bids.filter((bid) => {
     const value = searchValue.toLowerCase();
     return (
@@ -67,8 +66,15 @@ const BinPage = () => {
           />
         </Box>
       </Box>
+
       <Box sx={{ mt: 3 }}>
-        <UITable variant="bids" rowForBids={filteredBids} />
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
+            <span className="loader" />
+          </Box>
+        ) : (
+          <UITable variant="bids" rowForBids={filteredBids} />
+        )}
       </Box>
     </Container>
   );
